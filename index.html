@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rin Truyện</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(90deg, #4b90ff, #7f60ff);
+        }
+        .genre-tag {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #4b90ff, #7f60ff);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            padding: 12px 24px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        /* Ngăn sao chép văn bản */
+        .no-select {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
+            user-select: none; /* Standard syntax */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-transparent bg-clip-text gradient-bg">Rin Truyện</a>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#" id="nav-home" class="text-gray-600 hover:text-blue-500 transition-colors duration-200">Trang chủ</a>
+                <a href="#" id="nav-management" class="text-gray-600 hover:text-blue-500 transition-colors duration-200 hidden">Quản lý truyện</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition-colors duration-200">Thể loại</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition-colors duration-200">Bảng xếp hạng</a>
+                <a href="#" class="text-gray-600 hover:text-blue-500 transition-colors duration-200">Lịch sử đọc</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden sm:block">
+                    <input type="text" placeholder="Tìm kiếm truyện..." class="bg-gray-100 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <button id="post-story-button" class="btn-primary flex items-center hidden md:block">
+                    <i class="fas fa-plus mr-2"></i> Đăng truyện
+                </button>
+                <button id="auth-button" class="bg-blue-500 text-white rounded-full py-2 px-6 font-semibold hidden md:block">Đăng nhập</button>
+                <button class="md:hidden text-gray-600">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed top-20 right-4 z-50 p-4 rounded-lg shadow-md hidden"></div>
+
+    <!-- Trang chủ -->
+    <main id="home-page" class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Left Sidebar -->
+            <div class="md:col-span-3 space-y-8">
+                <!-- Truyện nổi bật -->
+                <section class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-700">Truyện nổi bật</h2>
+                        <a href="#" class="text-sm text-blue-500 font-medium hover:underline">Xem tất cả</a>
+                    </div>
+                    <div id="featured-stories" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <!-- Nội dung sẽ được tải từ Firestore -->
+                    </div>
+                </section>
+
+                <!-- Truyện mới cập nhật -->
+                <section class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-700">Truyện mới cập nhật</h2>
+                        <a href="#" class="text-sm text-blue-500 font-medium hover:underline">Xem tất cả</a>
+                    </div>
+                    <ul id="recent-stories" class="space-y-4">
+                        <!-- Nội dung sẽ được tải từ Firestore -->
+                    </ul>
+                </section>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="md:col-span-1 space-y-8">
+                <!-- Tìm kiếm nâng cao -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Tìm kiếm nâng cao</h2>
+                    <div class="space-y-4">
+                        <input type="text" placeholder="Tên truyện, tác giả..." class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        
+                        <label for="sort-by" class="block text-sm font-medium text-gray-700">Sắp xếp theo:</label>
+                        <select id="sort-by" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option>Mới nhất</option>
+                            <option>Nhiều người đọc</option>
+                            <option>Đánh giá cao</option>
+                        </select>
+
+                        <label for="genre" class="block text-sm font-medium text-gray-700">Thể loại:</label>
+                        <select id="genre" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option>Tất cả</option>
+                            <option>Tiên Hiệp</option>
+                            <option>Ngôn Tình</option>
+                            <option>Huyền Huyễn</option>
+                            <option>Trọng Sinh</option>
+                            <option>Xuyên Không</option>
+                            <option>Trinh Thám</option>
+                            <option>Truyện Zhihu</option>
+                            <option>Hào Môn Thế Gia</option>
+                            <option>Hệ Thống</option>
+                            <option>Ngược Luyến Tàn Tâm</option>
+                            <option>Sủng</option>
+                            <option>Trả Thù</option>
+                            <option>Vả Mặt</option>
+                            <option>Vô Tri</option>
+                            <option>Truy Thê</option>
+                            <option>Tổng Tài</option>
+                            <option>Tiểu Thuyết</option>
+                            <option>Showbiz</option>
+                            <option>Học Bá</option>
+                            <option>Học Đường</option>
+                            <option>Linh Dị</option>
+                            <option>Kinh Dị</option>
+                            <option>Mạt Thế</option>
+                            <option>Mỹ Thực</option>
+                            <option>Hoán Đổi Thân Xác</option>
+                            <option>Niên Đại</option>
+                            <option>Nữ Cường</option>
+                            <option>Phép Thuật</option>
+                            <option>Phương Đông</option>
+                            <option>Phương Tây</option>
+                            <option>Sảng Văn</option>
+                            <option>SE</option>
+                            <option>HE</option>
+                            <option>OE</option>
+                            <option>Không CP</option>
+                            <option>Thể loại khác</option>
+                        </select>
+
+                        <label for="status" class="block text-sm font-medium text-gray-700">Tình trạng:</label>
+                        <select id="status" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option>Tất cả</option>
+                            <option>Đang tiến hành</option>
+                            <option>Hoàn thành</option>
+                        </select>
+
+                        <button class="btn-primary w-full text-center">
+                            <i class="fas fa-filter mr-2"></i>Lọc truyện
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bảng xếp hạng -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Bảng xếp hạng</h2>
+                    <div class="flex mb-4">
+                        <button class="flex-1 py-2 px-4 rounded-full font-medium text-sm bg-blue-500 text-white shadow-md">Top tháng</button>
+                        <button class="flex-1 py-2 px-4 rounded-full font-medium text-sm text-gray-600">Top tuần</button>
+                        <button class="flex-1 py-2 px-4 rounded-full font-medium text-sm text-gray-600">Top all</button>
+                    </div>
+                    <ul class="space-y-2">
+                        <!-- Example Ranking Item -->
+                        <li class="flex items-center space-x-2">
+                            <span class="font-bold text-lg text-blue-500">1.</span>
+                            <a href="#" class="text-gray-800 hover:text-blue-500">Truyện hot nhất</a>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <span class="font-bold text-lg text-blue-500">2.</span>
+                            <a href="#" class="text-gray-800 hover:text-blue-500">Truyện được yêu thích</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Trang chi tiết truyện (ban đầu bị ẩn) -->
+    <main id="story-detail-page" class="container mx-auto px-4 py-8 hidden">
+        <button id="back-button" class="text-gray-600 hover:text-blue-500 mb-6 font-medium"><i class="fas fa-arrow-left mr-2"></i>Quay lại trang chủ</button>
+        
+        <div class="card p-6 md:p-8">
+            <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start">
+                <img id="story-cover" src="" alt="Bìa truyện" class="w-48 h-auto rounded-lg shadow-lg flex-shrink-0">
+                <div class="flex-1">
+                    <h1 id="story-title" class="text-3xl font-bold text-gray-800 mb-2"></h1>
+                    <div class="flex items-center space-x-4 text-gray-500 text-sm mb-4">
+                        <span id="story-author-info"><i class="fas fa-user mr-1 text-blue-400"></i> Tác giả: </span>
+                        <span id="story-chapter-count"><i class="fas fa-book mr-1 text-blue-400"></i></span>
+                        <span id="story-genre" class="genre-tag"></span>
+                    </div>
+                    <p class="text-gray-600 font-medium mb-4">Trạng thái: <span id="story-status" class="text-green-500"></span></p>
+                    <div class="flex space-x-4 mb-6">
+                        <button class="btn-primary flex items-center justify-center">
+                            <i class="fas fa-play mr-2"></i>Đọc từ đầu
+                        </button>
+                        <button class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-full transition-colors duration-200 hover:bg-gray-300">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-6 border-gray-200">
+            
+            <div class="space-y-4 no-select">
+                <h2 class="text-2xl font-semibold text-gray-700">Tóm tắt nội dung</h2>
+                <p id="story-summary" class="text-gray-600 text-justify leading-relaxed"></p>
+            </div>
+            
+            <hr class="my-6 border-gray-200">
+            
+            <div class="space-y-4">
+                <h2 class="text-2xl font-semibold text-gray-700">Danh sách chương</h2>
+                <ul id="chapters-list" class="list-none space-y-2">
+                    <!-- Nội dung sẽ được tải từ Firestore -->
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Trang quản lý truyện (ban đầu bị ẩn) -->
+    <main id="management-page" class="container mx-auto px-4 py-8 hidden">
+        <button id="management-back-button" class="text-gray-600 hover:text-blue-500 mb-6 font-medium"><i class="fas fa-arrow-left mr-2"></i>Quay lại trang chủ</button>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Form Thêm truyện mới -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Thêm truyện mới</h2>
+                <form id="new-story-form" class="space-y-4">
+                    <div>
+                        <label for="story-name" class="block text-sm font-medium text-gray-700">Tên truyện</label>
+                        <input type="text" id="story-name" name="story-name" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label for="story-author" class="block text-sm font-medium text-gray-700">Tác giả</label>
+                        <input type="text" id="story-author" name="story-author" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label for="story-genre" class="block text-sm font-medium text-gray-700">Thể loại</label>
+                        <select id="story-genre" name="story-genre" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">-- Chọn thể loại --</option>
+                            <option>Tiên Hiệp</option>
+                            <option>Ngôn Tình</option>
+                            <option>Huyền Huyễn</option>
+                            <option>Trọng Sinh</option>
+                            <option>Xuyên Không</option>
+                            <option>Trinh Thám</option>
+                            <option>Truyện Zhihu</option>
+                            <option>Hào Môn Thế Gia</option>
+                            <option>Hệ Thống</option>
+                            <option>Ngược Luyến Tàn Tâm</option>
+                            <option>Sủng</option>
+                            <option>Trả Thù</option>
+                            <option>Vả Mặt</option>
+                            <option>Vô Tri</option>
+                            <option>Truy Thê</option>
+                            <option>Tổng Tài</option>
+                            <option>Tiểu Thuyết</option>
+                            <option>Showbiz</option>
+                            <option>Học Bá</option>
+                            <option>Học Đường</option>
+                            <option>Linh Dị</option>
+                            <option>Kinh Dị</option>
+                            <option>Mạt Thế</option>
+                            <option>Mỹ Thực</option>
+                            <option>Hoán Đổi Thân Xác</option>
+                            <option>Niên Đại</option>
+                            <option>Nữ Cường</option>
+                            <option>Phép Thuật</option>
+                            <option>Phương Đông</option>
+                            <option>Phương Tây</option>
+                            <option>Sảng Văn</option>
+                            <option>SE</option>
+                            <option>HE</option>
+                            <option>OE</option>
+                            <option>Không CP</option>
+                            <option>Thể loại khác</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="story-status" class="block text-sm font-medium text-gray-700">Trạng thái</label>
+                        <select id="story-status" name="story-status" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="Đang tiến hành">Đang tiến hành</option>
+                            <option value="Hoàn thành">Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="story-summary" class="block text-sm font-medium text-gray-700">Tóm tắt</label>
+                        <textarea id="story-summary" name="story-summary" rows="4" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                    </div>
+                    <div>
+                        <label for="story-image-url" class="block text-sm font-medium text-gray-700">Đường dẫn ảnh bìa (URL)</label>
+                        <input type="url" id="story-image-url" name="story-image-url" class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <button type="submit" class="btn-primary w-full text-center">
+                        <i class="fas fa-plus mr-2"></i>Thêm truyện
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Form Thêm chương mới -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Thêm chương mới</h2>
+                <form id="new-chapter-form" class="space-y-4">
+                    <div>
+                        <label for="select-story" class="block text-sm font-medium text-gray-700">Chọn truyện</label>
+                        <select id="select-story" name="select-story" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">-- Chọn truyện --</option>
+                            <!-- Các tùy chọn truyện sẽ được thêm bằng JavaScript -->
+                        </select>
+                    </div>
+                    <div id="chapter-fields" class="space-y-4 hidden">
+                        <div>
+                            <label for="chapter-title" class="block text-sm font-medium text-gray-700">Tên chương</label>
+                            <input type="text" id="chapter-title" name="chapter-title" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        </div>
+                        <div>
+                            <label for="chapter-content" class="block text-sm font-medium text-gray-700">Nội dung chương</label>
+                            <textarea id="chapter-content" name="chapter-content" rows="10" required class="w-full mt-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-center">
+                            <i class="fas fa-plus mr-2"></i>Thêm chương
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- Bảng quản lý truyện -->
+            <div class="card p-6 md:col-span-2">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Danh sách truyện hiện có</h2>
+                <ul id="manage-stories-list" class="space-y-4">
+                    <!-- Nội dung sẽ được tải từ Firestore -->
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        
+        // Cấu hình Firebase - Thay thế bằng cấu hình dự án của bạn
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Khởi tạo Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        
+        // Email của quản trị viên (có thể thêm nhiều email vào một mảng)
+        const adminEmail = 'admin@example.com'; 
+
+        // Lấy các phần tử trang
+        const homePage = document.getElementById('home-page');
+        const storyDetailPage = document.getElementById('story-detail-page');
+        const managementPage = document.getElementById('management-page');
+        const featuredStoriesContainer = document.getElementById('featured-stories');
+        const recentStoriesContainer = document.getElementById('recent-stories');
+        const chaptersList = document.getElementById('chapters-list');
+        const manageStoriesList = document.getElementById('manage-stories-list');
+        
+        // Lấy các nút điều hướng
+        const navHome = document.getElementById('nav-home');
+        const navManagement = document.getElementById('nav-management');
+        const authButton = document.getElementById('auth-button');
+        const postStoryButton = document.getElementById('post-story-button');
+        const backButton = document.getElementById('back-button');
+        const managementBackButton = document.getElementById('management-back-button');
+
+        // Lấy các form
+        const newStoryForm = document.getElementById('new-story-form');
+        const newChapterForm = document.getElementById('new-chapter-form');
+        const selectStory = document.getElementById('select-story');
+        const chapterFields = document.getElementById('chapter-fields');
+
+        // Hàm hiển thị thông báo
+        function showMessage(message, type = 'success') {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = message;
+            msgBox.className = `fixed top-20 right-4 z-50 p-4 rounded-lg shadow-md`;
+            if (type === 'success') {
+                msgBox.classList.add('bg-green-500', 'text-white');
+            } else {
+                msgBox.classList.add('bg-red-500', 'text-white');
+            }
+            msgBox.classList.remove('hidden');
+            setTimeout(() => {
+                msgBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Hàm quản lý việc hiển thị các trang
+        function showPage(pageId) {
+            homePage.classList.add('hidden');
+            storyDetailPage.classList.add('hidden');
+            managementPage.classList.add('hidden');
+            
+            if (pageId === 'home') {
+                homePage.classList.remove('hidden');
+            } else if (pageId === 'story-detail') {
+                storyDetailPage.classList.remove('hidden');
+            } else if (pageId === 'management') {
+                managementPage.classList.remove('hidden');
+            }
+        }
+        
+        // Hàm tải chi tiết truyện
+        async function loadStoryDetails(storyId) {
+            try {
+                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, storyId);
+                const storyDoc = await getDoc(storyRef);
+                if (storyDoc.exists()) {
+                    const data = storyDoc.data();
+                    document.getElementById('story-title').textContent = data.name;
+                    document.getElementById('story-author-info').textContent = `Tác giả: ${data.author}`;
+                    document.getElementById('story-genre').textContent = data.genre;
+                    document.getElementById('story-status').textContent = data.status;
+                    document.getElementById('story-summary').textContent = data.summary;
+                    document.getElementById('story-cover').src = data.imageUrl || `https://placehold.co/200x280/e2e8f0/64748b?text=${encodeURIComponent(data.name)}`;
+
+                    // Lấy danh sách chương
+                    const chaptersRef = collection(db, `artifacts/${appId}/public/data/stories/${storyId}/chapters`);
+                    onSnapshot(chaptersRef, (snapshot) => {
+                        chaptersList.innerHTML = '';
+                        let chapterCount = 0;
+                        snapshot.forEach(doc => {
+                            const chapter = doc.data();
+                            chapterCount++;
+                            const li = document.createElement('li');
+                            li.className = 'p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200';
+                            li.innerHTML = `
+                                <a href="#" class="flex justify-between items-center text-gray-700">
+                                    <span class="font-medium">${chapter.title}</span>
+                                    <span class="text-sm text-gray-400">${new Date(chapter.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                                </a>
+                            `;
+                            chaptersList.appendChild(li);
+                        });
+                        document.getElementById('story-chapter-count').innerHTML = `<i class="fas fa-book mr-1 text-blue-400"></i> ${chapterCount} Chương`;
+                    });
+                } else {
+                    showMessage("Truyện không tồn tại.", "error");
+                    showPage('home');
+                }
+            } catch (e) {
+                console.error("Lỗi khi tải chi tiết truyện:", e);
+                showMessage("Đã xảy ra lỗi khi tải truyện.", "error");
+            }
+        }
+
+        // Lắng nghe sự thay đổi trạng thái đăng nhập
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                authButton.textContent = 'Đăng xuất';
+                navManagement.classList.remove('hidden');
+                postStoryButton.classList.remove('hidden');
+            } else {
+                authButton.textContent = 'Đăng nhập';
+                navManagement.classList.add('hidden');
+                postStoryButton.classList.add('hidden');
+                showPage('home');
+            }
+        });
+
+        // Gắn sự kiện click cho nút đăng nhập/đăng xuất
+        authButton.addEventListener('click', () => {
+            if (auth.currentUser) {
+                signOut(auth).catch((error) => {
+                    console.error("Lỗi khi đăng xuất:", error);
+                });
+            } else {
+                signInWithPopup(auth, provider).catch((error) => {
+                    console.error("Lỗi khi đăng nhập:", error);
+                });
+            }
+        });
+        
+        // Gắn sự kiện click cho nút Đăng truyện
+        postStoryButton.addEventListener('click', () => {
+             if (auth.currentUser) {
+                showPage('management');
+            } else {
+                showMessage("Vui lòng đăng nhập để truy cập trang này.", "error");
+            }
+        });
+
+        // Gắn sự kiện click cho các nút điều hướng
+        navHome.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage('home');
+        });
+
+        navManagement.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (auth.currentUser) {
+                showPage('management');
+            } else {
+                showMessage("Vui lòng đăng nhập để truy cập trang này.", "error");
+            }
+        });
+
+        // Gắn sự kiện click cho nút quay lại
+        backButton.addEventListener('click', () => {
+            showPage('home');
+        });
+        managementBackButton.addEventListener('click', () => {
+            showPage('home');
+        });
+
+        // Gắn sự kiện submit cho form thêm truyện mới
+        newStoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (auth.currentUser) {
+                try {
+                    const storyData = {
+                        name: document.getElementById('story-name').value,
+                        author: document.getElementById('story-author').value,
+                        genre: document.getElementById('story-genre').value,
+                        status: document.getElementById('story-status').value,
+                        summary: document.getElementById('story-summary').value,
+                        imageUrl: document.getElementById('story-image-url').value || `https://placehold.co/150x200/e2e8f0/64748b?text=${encodeURIComponent(document.getElementById('story-name').value.slice(0, 10))}`,
+                        createdAt: new Date(),
+                        userId: auth.currentUser.uid
+                    };
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/stories`), storyData);
+                    showMessage("Đã thêm truyện mới thành công!");
+                    newStoryForm.reset();
+                } catch (e) {
+                    console.error("Lỗi khi thêm truyện:", e);
+                    showMessage("Lỗi khi thêm truyện.", "error");
+                }
+            } else {
+                showMessage("Bạn không có quyền thực hiện chức năng này.", "error");
+            }
+        });
+
+        // Gắn sự kiện submit cho form thêm chương mới
+        newChapterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (auth.currentUser) {
+                try {
+                    const chapterData = {
+                        title: document.getElementById('chapter-title').value,
+                        content: document.getElementById('chapter-content').value,
+                        createdAt: new Date()
+                    };
+                    const storyId = selectStory.value;
+                    if (storyId) {
+                        await addDoc(collection(db, `artifacts/${appId}/public/data/stories/${storyId}/chapters`), chapterData);
+                        showMessage("Đã thêm chương mới thành công!");
+                        newChapterForm.reset();
+                        chapterFields.classList.add('hidden');
+                        selectStory.value = '';
+                    } else {
+                        showMessage("Vui lòng chọn một truyện.", "error");
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi thêm chương:", e);
+                    showMessage("Lỗi khi thêm chương.", "error");
+                }
+            } else {
+                showMessage("Bạn không có quyền thực hiện chức năng này.", "error");
+            }
+        });
+
+        // Xóa truyện
+        async function deleteStory(storyId) {
+            if (auth.currentUser) {
+                const storyRef = doc(db, `artifacts/${appId}/public/data/stories`, storyId);
+                const storyDoc = await getDoc(storyRef);
+                const storyData = storyDoc.data();
+                
+                if (storyData.userId === auth.currentUser.uid) {
+                    const shouldDelete = confirm('Bạn có chắc chắn muốn xóa truyện này và tất cả các chương của nó?');
+                    if (shouldDelete) {
+                        try {
+                            // Xóa các chương trước
+                            const chaptersRef = collection(db, `artifacts/${appId}/public/data/stories/${storyId}/chapters`);
+                            const chaptersSnapshot = await getDocs(chaptersRef);
+                            chaptersSnapshot.forEach(async (doc) => {
+                                await deleteDoc(doc.ref);
+                            });
+                            // Xóa truyện
+                            await deleteDoc(storyRef);
+                            showMessage("Đã xóa truyện thành công!");
+                        } catch (e) {
+                            console.error("Lỗi khi xóa truyện:", e);
+                            showMessage("Lỗi khi xóa truyện.", "error");
+                        }
+                    }
+                } else {
+                    showMessage("Bạn chỉ có thể xóa truyện do mình tạo ra.", "error");
+                }
+            } else {
+                showMessage("Vui lòng đăng nhập để xóa truyện.", "error");
+            }
+        }
+
+        // Tải truyện lên trang chủ và trang quản lý
+        onSnapshot(collection(db, `artifacts/${appId}/public/data/stories`), (snapshot) => {
+            featuredStoriesContainer.innerHTML = '';
+            recentStoriesContainer.innerHTML = '';
+            selectStory.innerHTML = '<option value="">-- Chọn truyện --</option>';
+            manageStoriesList.innerHTML = '';
+
+            const stories = [];
+            snapshot.forEach(doc => {
+                const story = { id: doc.id, ...doc.data() };
+                stories.push(story);
+
+                // Hiển thị trên trang chủ
+                const featuredCard = document.createElement('div');
+                featuredCard.className = 'text-center story-card cursor-pointer';
+                featuredCard.dataset.storyId = story.id;
+                featuredCard.innerHTML = `
+                    <img src="${story.imageUrl}" alt="${story.name}" class="w-full h-auto object-cover rounded-lg mb-2 shadow-md">
+                    <h3 class="font-medium text-sm">${story.name}</h3>
+                `;
+                featuredCard.addEventListener('click', () => {
+                    loadStoryDetails(story.id);
+                    showPage('story-detail');
+                });
+                featuredStoriesContainer.appendChild(featuredCard);
+
+                const recentItem = document.createElement('li');
+                recentItem.className = 'flex items-start space-x-4 story-card cursor-pointer';
+                recentItem.dataset.storyId = story.id;
+                recentItem.innerHTML = `
+                    <img src="${story.imageUrl}" alt="${story.name}" class="w-20 h-24 rounded-lg shadow-md flex-shrink-0">
+                    <div class="flex-grow">
+                        <h3 class="font-semibold text-lg text-gray-800">${story.name}</h3>
+                        <p class="text-sm text-gray-500">Tác giả: ${story.author}</p>
+                        <p class="text-sm text-gray-600 mt-1 line-clamp-2">${story.summary}</p>
+                        <div class="mt-2 flex items-center space-x-2 text-gray-500 text-sm">
+                            <span class="genre-tag">${story.genre}</span>
+                            <span><i class="fas fa-clock text-blue-400"></i> ${new Date(story.createdAt.seconds * 1000).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+                 recentItem.addEventListener('click', () => {
+                    loadStoryDetails(story.id);
+                    showPage('story-detail');
+                });
+                recentStoriesContainer.appendChild(recentItem);
+
+                // Hiển thị trên trang quản lý
+                const option = document.createElement('option');
+                option.value = story.id;
+                option.textContent = story.name;
+                selectStory.appendChild(option);
+            });
+
+            // Hiển thị các truyện của người dùng hiện tại trên trang quản lý
+            const user = auth.currentUser;
+            if (user) {
+                const userStories = stories.filter(story => story.userId === user.uid);
+                userStories.forEach(story => {
+                    const manageItem = document.createElement('li');
+                    manageItem.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm';
+                    manageItem.innerHTML = `
+                        <div class="font-medium text-gray-800">${story.name} (${story.author})</div>
+                        <button class="text-red-500 hover:text-red-700 font-bold" data-story-id="${story.id}">Xóa</button>
+                    `;
+                    manageItem.querySelector('button').addEventListener('click', () => {
+                        deleteStory(story.id);
+                    });
+                    manageStoriesList.appendChild(manageItem);
+                });
+            }
+        });
+
+        // Hiển thị/ẩn form thêm chương dựa trên lựa chọn truyện
+        selectStory.addEventListener('change', () => {
+            if (selectStory.value) {
+                chapterFields.classList.remove('hidden');
+            } else {
+                chapterFields.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
